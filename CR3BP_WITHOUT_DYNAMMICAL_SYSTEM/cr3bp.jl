@@ -34,10 +34,10 @@ vyu = -vy0(0,μ,[x0,y0,vx0]) #sign negative for retrograde orbits
 u0 = [x0, 0, 0,vyu] # vector with initial conditions
 
 # Time Span
+t_end = 2*pi*5e+2
+tspan=(0.0,t_end)
 
-tspan=(0.0,2*pi*5e+2)
-
-
+global eigenvaluee = 0
 
 @inline @inbounds function cr3bp_rhs(du,u,μ,t)
    #cartesian coordinates
@@ -52,7 +52,8 @@ tspan=(0.0,2*pi*5e+2)
    du[2] = ŷ # F2
    du[3] =  2ŷ  + x - (1 - μ)*(μ + x)/(r1^3) - μ*(-1 + μ + x)/(r2^3) # F3
    du[4] = -2x̂  + y - (1 - μ)*y/(r1^3)       - μ*y/(r2^3) # F4
-   #println(f_jac(u,μ,t))
+   eigenvalues = f_jac(u,μ,t)
+   global eigenvaluee += log((eigenvalues[1]))
 end
 
 
@@ -92,7 +93,7 @@ end
 # solver
 
 prob = ODEProblem(cr3bp_rhs,u0,tspan,μ)
-solution2 = solve(prob,Feagin10(), reltol=1e-14, abstol=1e-14,saveat=2*pi)
+solution2 = solve(prob,Feagin10(), reltol=1e-12, abstol=1e-12,saveat=2*pi)
 
 p2 = scatter(solution2,vars=(1,2),title="integrator Feagin10()",
      xaxis="x (AU)",yaxis="y (AU)")
@@ -100,3 +101,5 @@ p1 = scatter(solution2,vars=(3,4),title="integrator Feagin10()",
           xaxis="x (AU)",yaxis="y (AU)")
 
 plot(p2,p1)
+#println(eigenvalue/t_end)
+println(eigenvalue/length(solution2[1]))
